@@ -1,11 +1,12 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, response, Response } from 'express';
 
+import { MongoClient, ServerApiVersion, ObjectId } from 'mongodb';
 const app: Application = express();
 const port: number = 3000;
 const cors = require("cors");
-require("dotenv").config();
 app.use(express.json());
 app.use(cors());
+require("dotenv").config();
 app.get('/', (req: Request, res: Response) => {
   res.send("hello");
 });
@@ -16,7 +17,6 @@ app.listen(port, () => {
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster.ia0ielx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -55,7 +55,6 @@ function categorizeEvent(title: string, notes?: string): 'Work' | 'Personal' | '
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
     // Send a ping to confirm a successful connection
     const eventCollection = client.db("event-scheduler").collection('events')
 
@@ -63,19 +62,11 @@ async function run() {
     app.post('/events', async (req: Request, res: Response) => {
       try {
         const { title, date, time, notes } = req.body;
-
+        console.log('Request Body:', req.body);
         // Validate input
         if (!title || !date || !time) {
           return res.status(400).json({ error: 'Title, date, and time are required' });
         }
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-          return res.status(400).json({ error: 'Invalid date format (YYYY-MM-DD)' });
-        }
-        if (!/^\d{1,2}:\d{2} (AM|PM)$/i.test(time)) {
-  return res.status(400).json({ error: 'Invalid time format (h:mm AM/PM)' });
-}
-
-
         const event: Event = {
           title,
           date,
@@ -84,7 +75,6 @@ async function run() {
           category: categorizeEvent(title, notes),
           archived: false,
         };
-
         const result = await eventCollection.insertOne(event);
         res.status(201).json({ ...event, _id: result.insertedId });
       } catch (error) {
@@ -94,7 +84,32 @@ async function run() {
     });
 
 
+    app.get('/events', async (req: Request, res: Response) => {
+      try {
+        const events = await eventCollection.find({ archived: false }).toArray();
 
+        if (!events || events.length === 0) {
+          return res.status(404).json({ message: 'No events found.' });
+        }
+
+        events.sort((a, b) => {
+          const dateA = new Date(`${a.date}T${a.time}:00`);
+          const dateB = new Date(`${b.date}T${b.time}:00`);
+          return dateA.getTime() - dateB.getTime();
+        });
+
+        res.status(200).json({
+          message: 'Events fetched successfully.',
+          data: events
+        });
+
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        res.status(500).json({ error: 'Internal server error.' });
+      }
+    });
+
+    await client.connect();
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
@@ -103,3 +118,4 @@ async function run() {
   }
 }
 run().catch(console.dir);
+

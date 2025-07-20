@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import Swal from "sweetalert2";
 interface EventData {
   title: string;
   date: string;
@@ -6,10 +7,10 @@ interface EventData {
   notes?: string;
   category: string;
 }
-export default function Form() {
+export default function Form({fetcData}) {
   const [time, setTime] = useState('');
   const [showForm, setShowForm] = useState<boolean>(false);
-  const [submited, setSubmited] = useState<boolean>(false);
+
 
   const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const date = event.target.value;
@@ -68,32 +69,30 @@ export default function Form() {
         throw new Error(`Server error: ${res.statusText}`);
       }
 
-      // Optionally, parse response:
-      // const data = await res.json();
-      // console.log(data);
+     
 
       form.reset();
       setTime("");
-      setSubmited(true)
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: " Event Scheduled",
+        showConfirmButton: false,
+        timer: 1500
+      });
+      fetcData()
       // setShowForm(false);
     } catch (error) {
       console.error('Failed to submit:', error);
     }
 
   };
-  useEffect(() => {
-    if (submited) {
-      const timer = setTimeout(() => {
-        setSubmited(false);
-      }, 2000);
-      return () => clearTimeout(timer); // cleanup
-    }
-  }, [submited]);
+
 
   return (
     <div className=" flex items-center justify-center p-4">
 
-      <div className="w-full  mx-auto p-6 bg-white rounded-xl shadow-lg">
+      <div className="w-full  mx-auto py-4 bg-white rounded-xl shadow-lg">
         <div className={`base-class ${showForm ? "text-end " : "text-center"}`}>
           <button
             onClick={() => setShowForm(!showForm)}
@@ -107,7 +106,7 @@ export default function Form() {
           }`}>
           {showForm && (
             <form
-              className="mt-8 space-y-6 lg:space-y-0 lg:flex lg:flex-wrap lg:justify-between lg:items-start gap-6 "
+              className="mt-8 space-y-6 p-4 lg:space-y-0 lg:flex lg:flex-wrap lg:justify-between lg:items-start gap-6 "
               onSubmit={handleSubmit}
 
             >
@@ -188,7 +187,7 @@ export default function Form() {
 
               {/* Submit Button */}
               <div className="w-full">
-                {submited ? <div className="font-bold text-green-600 text-center text-xl py-2"> EventScheduled</div> : <></>}
+              
 
                 <button
                   type="submit"
