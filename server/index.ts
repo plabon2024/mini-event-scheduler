@@ -113,12 +113,12 @@ async function run() {
       const { id } = req.params;
       console.log(id)
       console.log(req.body)
-    
+
 
       try {
         const result = await eventCollection.updateOne(
           { _id: new ObjectId(id) },
-          { $set:req.body }
+          { $set: req.body }
         );
 
         if (result.matchedCount === 0) {
@@ -129,6 +129,23 @@ async function run() {
       } catch (error) {
         console.error('Error updating event:', error);
         res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
+    app.delete('/events/:id', async (req: Request, res: Response) => {
+      const { id } = req.params;
+
+      try {
+        const result = await eventCollection.deleteOne({ _id: new ObjectId(id) });
+
+        if (result.deletedCount === 1) {
+          res.status(200).json({ message: `Event with id ${id} deleted successfully.` });
+        } else {
+          res.status(404).json({ message: `Event with id ${id} not found.` });
+        }
+      } catch (error) {
+        console.error('Error deleting event:', error);
+        res.status(500).json({ message: 'Internal server error' });
       }
     });
 

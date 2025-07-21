@@ -3,7 +3,8 @@ import Swal from 'sweetalert2';
 import Form from './Form';
 
 import { MdDelete } from 'react-icons/md';
-import { RxCross1 } from 'react-icons/rx';
+
+import { RiArchive2Fill, RiInboxArchiveFill, RiInboxUnarchiveFill } from 'react-icons/ri';
 
 export default function Events() {
   interface Event {
@@ -41,14 +42,14 @@ export default function Events() {
         });
         setEvents([]);
       });
-    }
-    useEffect(() => {
-      fetcData()
-    }, []);
-    
-    
-    const categories: Category[] = ["All", "Work", "Personal", "Other"];
-    const [showArchived, setShowArchived] = useState(false);
+  }
+  useEffect(() => {
+    fetcData()
+  }, []);
+
+
+  const categories: Category[] = ["All", "Work", "Personal", "Other"];
+  const [showArchived, setShowArchived] = useState(false);
 
 
 
@@ -83,14 +84,61 @@ export default function Events() {
     }
   });
 
-  
+  // delete 
+  const handleDelete = async (id: string) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, delete it!"
+      });
+
+      if (result.isConfirmed) {
+        const res = await fetch(`${import.meta.env.VITE_baseUrl}/events/${id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (res.ok) {
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your file has been deleted.",
+            icon: "success",
+            showConfirmButton: false,
+            timer: 1000
+          });
+        } else {
+          Swal.fire({
+            title: "Error!",
+            text: "Failed to delete the file.",
+            icon: "error"
+          });
+        }
+      }
+    } catch (error) {
+      Swal.fire({
+        title: "Error!",
+        text: "Something went wrong.",
+        icon: "error"
+      });
+      console.error(error);
+    } finally {
+      fetcData()
+    }
+  };
+
+
 
   return (
     <>
       <Form fetcData={fetcData} ></Form>
       <div className="font-light text-3xl p-4">Scheduled Events</div>
       <div className="space-y-4 p-4">
-        <div className='flex justify-between'>
+        <div className='flex justify-between flex-col md:flex-row'>
           {!showArchived && <div className="flex flex-row gap-4">
             {categories.map((category) => (
               <label key={category} className="flex items-center gap-2">
@@ -108,10 +156,11 @@ export default function Events() {
 
           <button
             onClick={() => setShowArchived(!showArchived)}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded ms-auto"
+            className="px-4 py-2 text-xl font-light bg-slate-300  rounded me-auto md:me-0  md:ms-auto"
           >
-            {showArchived ? 'Show Active Events' : 'Show Archived Events'}
-          </button>
+            {showArchived
+              ? 'Show Active Events' : (<div className='flex items-center'> <RiArchive2Fill style={{ marginRight: '4px' }} /> <span>Archive</span></div>
+              )}</button>
         </div>
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5'
         >
@@ -120,30 +169,39 @@ export default function Events() {
             <p className="text-gray-500">No events found.</p>
           ) : (
             displayedEvents.map((event) => (
+           
+              <div key={event._id} className="p-4 md:grid md:grid-cols-12  justify-center shadow-2xl rounded-md transition-shadow duration-300 bg-white">
 
-              <div
-                key={event._id}
-                className="p-4 flex items-center gap-5 border rounded-md shadow-sm hover:shadow-md transition-shadow duration-300 bg-white"
-              >
-                <p className="text-sm text-gray-500">{event.date}</p>
-                <div>
-                  <h1 className="text-lg font-semibold text-gray-800 mb-1">{event.title}</h1>
-                  <p className="text-sm text-gray-500">{event.time}</p>
-                  {event.notes && <p className="text-sm text-gray-500">{event.notes}</p>}
+                <div className="col-span-12">
+                  <div className='flex items-center justify-between gap-2'>
 
-                </div><div className='flex flex-col justify-center items-center gap-5'>
-                  <div onClick={() => archiveEvent(event._id, event.archived)} className='p-2 rounded-md hover:bg-gray-300'>
-
-                    <RxCross1 size={22} />
-
+                    <h1 className="text-xl  text-gray-900 mb-2 font-semibold capitalize">{event.title} </h1>
+                    <div className=" flex justify-end ">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => archiveEvent(event._id, event.archived)}
+                          className="p-2 rounded-md hover:bg-gray-200 focus:outline-none "
+                          aria-label={showArchived ? 'Unarchive' : 'Archive'}
+                          title={showArchived ? 'Unarchive' : 'Archive'}
+                        >
+                          {showArchived ? <RiInboxUnarchiveFill size={24} /> : <RiInboxArchiveFill size={24} />}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(event._id)}
+                          className="p-2 rounded-md hover:bg-red-500 hover:text-white focus:outline-none"
+                          aria-label="Delete"
+                          title="Delete"
+                        >
+                          <MdDelete size={24} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className='p-2 rounded-md hover:bg-red-400 '>
-                    <MdDelete size={25} />
+                  <p className="text-sm text-gray-600 mb-1">{event.date} at {event.time}</p>
 
-                  </div>
-
+                  {event.notes && <p className="text-sm text-gray-500 italic">{event.notes}</p>}
                 </div>
-              </div>
+              </div>             
             ))
           )}
         </div>

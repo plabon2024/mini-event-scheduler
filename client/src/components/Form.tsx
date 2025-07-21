@@ -17,7 +17,7 @@ export default function Form({ fetcData }) {
     const today = new Date().toISOString().split('T')[0];
 
     if (date === today) {
-      const currentTime = new Date().toTimeString().split(' ')[0].slice(0, 5);  // "HH:mm"
+      const currentTime = new Date().toLocaleTimeString().split(' ')[0].slice(0, 5);  // "HH:mm"
 
       setTime(currentTime);
 
@@ -28,7 +28,7 @@ export default function Form({ fetcData }) {
 
   const updateTimeIfToday = () => {
     const today = new Date().toISOString().split('T')[0];
-    const currentTime = new Date().toTimeString().split(' ')[0].slice(0, 5);  // "HH:mm"
+    const currentTime = new Date().toLocaleTimeString().split(' ')[0].slice(0, 5);  // "HH:mm"
 
     const selectedDate = document.querySelector<HTMLInputElement>('input[name="date"]')?.value;
 
