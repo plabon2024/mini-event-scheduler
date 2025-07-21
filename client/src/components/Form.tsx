@@ -7,7 +7,7 @@ interface EventData {
   notes?: string;
   category: string;
 }
-export default function Form({fetcData}) {
+export default function Form({ fetcData }) {
   const [time, setTime] = useState('');
   const [showForm, setShowForm] = useState<boolean>(false);
 
@@ -69,7 +69,7 @@ export default function Form({fetcData}) {
         throw new Error(`Server error: ${res.statusText}`);
       }
 
-     
+
 
       form.reset();
       setTime("");
@@ -187,7 +187,7 @@ export default function Form({fetcData}) {
 
               {/* Submit Button */}
               <div className="w-full">
-              
+
 
                 <button
                   type="submit"

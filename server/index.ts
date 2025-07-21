@@ -109,6 +109,29 @@ async function run() {
       }
     });
 
+    app.put('/events/:id', async (req: Request, res: Response) => {
+      const { id } = req.params;
+      console.log(id)
+      console.log(req.body)
+    
+
+      try {
+        const result = await eventCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set:req.body }
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ error: 'Event not found' });
+        }
+
+        res.json({ message: 'Event archived successfully' });
+      } catch (error) {
+        console.error('Error updating event:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
     await client.connect();
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");

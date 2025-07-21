@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import Form from './Form';
+import { LuCalendarX } from 'react-icons/lu';
+import { MdDelete } from 'react-icons/md';
 
 export default function Events() {
   interface Event {
@@ -23,15 +25,9 @@ export default function Events() {
     fetch(`${import.meta.env.VITE_baseUrl}/events`)
       .then((res) => res.json())
       .then((response) => {
-        // Check if response.data is an array
         if (response.data && Array.isArray(response.data)) {
           setEvents(response.data);
         } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error fetching events',
-            text: 'Unexpected response format from server.',
-          });
           setEvents([]);
         }
       })
@@ -54,6 +50,23 @@ export default function Events() {
     : events.filter((event) => event.category === filter);
   const categories: Category[] = ["All", "Work", "Personal", "Other"];
 
+
+
+  // archive
+  const archiveEvent = async (id: string, status: boolean) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_baseUrl}/events/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: ! status }),
+      })
+      if (res.ok) {
+        console.log(res)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
   return (
     <>
       <Form fetcData={fetcData} ></Form>
@@ -90,6 +103,16 @@ export default function Events() {
                   <h1 className="text-lg font-semibold text-gray-800 mb-1">{event.title}</h1>
                   <p className="text-sm text-gray-500">{event.time}</p>
                   {event.notes && <p className="text-sm text-gray-500">{event.notes}</p>}
+
+                </div><div className='flex flex-col justify-center items-center gap-5'>
+                  <div onClick={() => archiveEvent(event._id, event.archived)} className='p-2 rounded-md hover:bg-gray-300'>
+                    <LuCalendarX size={22} />
+                  </div>
+                  <div className='p-2 rounded-md hover:bg-red-400 '>
+                    <MdDelete size={25} />
+
+                  </div>
+
                 </div>
               </div>
             ))
