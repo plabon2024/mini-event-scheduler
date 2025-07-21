@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import Form from './Form';
 
 import { MdDelete } from 'react-icons/md';
 
 import { RiArchive2Fill, RiInboxArchiveFill, RiInboxUnarchiveFill } from 'react-icons/ri';
+import { format, parse } from 'date-fns';
 
 export default function Events() {
   interface Event {
@@ -106,7 +107,7 @@ export default function Events() {
         if (res.ok) {
           Swal.fire({
             title: "Deleted!",
-            text: "Your file has been deleted.",
+            text: "Event has been deleted.",
             icon: "success",
             showConfirmButton: false,
             timer: 1000
@@ -114,7 +115,7 @@ export default function Events() {
         } else {
           Swal.fire({
             title: "Error!",
-            text: "Failed to delete the file.",
+            text: "Failed to delete the Event.",
             icon: "error"
           });
         }
@@ -169,7 +170,7 @@ export default function Events() {
             <p className="text-gray-500">No events found.</p>
           ) : (
             displayedEvents.map((event) => (
-           
+
               <div key={event._id} className="p-4 md:grid md:grid-cols-12  justify-center shadow-2xl rounded-md transition-shadow duration-300 bg-white">
 
                 <div className="col-span-12">
@@ -197,11 +198,13 @@ export default function Events() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">{event.date} at {event.time}</p>
+                  <p className="text-sm text-gray-600 mb-1">
+                    {format(new Date(event.date), "MMMM dd, yyyy")} at {format(parse(event.time, 'HH:mm', new Date()), 'hh:mm a')}
+                  </p>
 
                   {event.notes && <p className="text-sm text-gray-500 italic">{event.notes}</p>}
                 </div>
-              </div>             
+              </div>
             ))
           )}
         </div>
