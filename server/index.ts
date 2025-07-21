@@ -86,7 +86,7 @@ async function run() {
 
     app.get('/events', async (req: Request, res: Response) => {
       try {
-        const events = await eventCollection.find({ archived: false }).toArray();
+        const events = await eventCollection.find().toArray();
 
         if (!events || events.length === 0) {
           return res.status(404).json({ message: 'No events found.' });

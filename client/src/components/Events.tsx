@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import Form from './Form';
-import { LuCalendarX } from 'react-icons/lu';
+
 import { MdDelete } from 'react-icons/md';
+import { RxCross1 } from 'react-icons/rx';
 
 export default function Events() {
   interface Event {
@@ -10,7 +11,7 @@ export default function Events() {
     title: string;
     date: string;
     time: string;
-    notes?: string; // Allow undefined to match backend
+    notes?: string;
     category: 'Work' | 'Personal' | 'Other';
     archived: boolean;
   }
@@ -40,15 +41,14 @@ export default function Events() {
         });
         setEvents([]);
       });
-  }
-  useEffect(() => {
-    fetcData()
-  }, []);
-
-  const filteredEvents = filter === 'All'
-    ? events
-    : events.filter((event) => event.category === filter);
-  const categories: Category[] = ["All", "Work", "Personal", "Other"];
+    }
+    useEffect(() => {
+      fetcData()
+    }, []);
+    
+    
+    const categories: Category[] = ["All", "Work", "Personal", "Other"];
+    const [showArchived, setShowArchived] = useState(false);
 
 
 
@@ -58,41 +58,68 @@ export default function Events() {
       const res = await fetch(`${import.meta.env.VITE_baseUrl}/events/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ archived: ! status }),
+        body: JSON.stringify({ archived: !status }),
       })
       if (res.ok) {
-        console.log(res)
+        Swal.fire({
+          icon: 'success',
+          title: `${showArchived ? "Event Unarchived" : "Event Archived"}`,
+          showConfirmButton: false
+        });
+
       }
+      fetcData()
+
     } catch (error) {
       console.log(error)
     }
   }
+
+  const displayedEvents = events.filter(event => {
+    if (showArchived) {
+      return event.archived === true;
+    } else {
+      return event.archived === false && (filter === 'All' || event.category === filter);
+    }
+  });
+
+  
+
   return (
     <>
       <Form fetcData={fetcData} ></Form>
       <div className="font-light text-3xl p-4">Scheduled Events</div>
       <div className="space-y-4 p-4">
-        <div className="flex flex-row gap-4">
-          {categories.map((category) => (
-            <label key={category} className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="category"
-                value={category}
-                checked={filter === category}
-                onChange={(e) => setFilter(e.target.value as Category)}
-              />
-              <span>{category}</span>
-            </label>
-          ))}
+        <div className='flex justify-between'>
+          {!showArchived && <div className="flex flex-row gap-4">
+            {categories.map((category) => (
+              <label key={category} className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="category"
+                  value={category}
+                  checked={filter === category}
+                  onChange={(e) => setFilter(e.target.value as Category)}
+                />
+                <span>{category}</span>
+              </label>
+            ))}
+          </div>}
+
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded ms-auto"
+          >
+            {showArchived ? 'Show Active Events' : 'Show Archived Events'}
+          </button>
         </div>
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5'
         >
 
-          {filteredEvents.length === 0 ? (
+          {displayedEvents.length === 0 ? (
             <p className="text-gray-500">No events found.</p>
           ) : (
-            filteredEvents.map((event) => (
+            displayedEvents.map((event) => (
 
               <div
                 key={event._id}
@@ -106,7 +133,9 @@ export default function Events() {
 
                 </div><div className='flex flex-col justify-center items-center gap-5'>
                   <div onClick={() => archiveEvent(event._id, event.archived)} className='p-2 rounded-md hover:bg-gray-300'>
-                    <LuCalendarX size={22} />
+
+                    <RxCross1 size={22} />
+
                   </div>
                   <div className='p-2 rounded-md hover:bg-red-400 '>
                     <MdDelete size={25} />

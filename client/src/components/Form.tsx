@@ -93,7 +93,7 @@ export default function Form({ fetcData }) {
     <div className=" flex items-center justify-center p-4">
 
       <div className="w-full  mx-auto py-4 bg-white rounded-xl shadow-lg">
-        <div className={`base-class ${showForm ? "text-end " : "text-center"}`}>
+        <div className={`base-class ${showForm ? "text-end px-4" : "text-center"}`}>
           <button
             onClick={() => setShowForm(!showForm)}
             className={`bg-green-600 hover:bg-green-700 transition-colors duration-300 text-white px-6 py-3 rounded-lg font-semibold ${showForm ? "bg-slate-400 hover:bg-slate-600" : ""} `}
